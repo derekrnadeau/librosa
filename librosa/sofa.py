@@ -1,7 +1,7 @@
 import librosa 
 import numpy as np
 import math
-import netCDF4 as ncdf
+import netcdf4 as ncdf
 import argparse
 import sys
 import re
@@ -11,10 +11,10 @@ parser = argparse.ArgumentParser(
     description="",
 )
 parser.add_argument('-f',   '--sofapath'    )
-parser.add_argument('-i',   '--inputpath'  )
+parser.add_argument('-i',   '--inputpath'   )
+parser.add_argument('-o',   '--outputpath'  )
 parser.add_argument('-ele', '--elevation'   )
 parser.add_argument('-azi', '--azimuth'     )
-parser.add_argument('-o',   '--outputpath'  )
 parser.add_argument('-xtc', '--crosstalkx'  )
 args = parser.parse_args()
 
@@ -54,10 +54,10 @@ try:
 except:
     sys.exit("InputError: 'azimuth' is not a valid float.")
 
-try: 
-    if (not re.match('^(.+[\\/])?[^\\/]+\.sofa$', args.sofapath)): raise ValueError
-except:
-    sys.exit("InputError: Path to SOFA is invalid.")
+# try: 
+#     if (not re.match('^(.+[\\/])?[^\\/]+\.sofa$', args.sofapath)): raise ValueError
+# except:
+#     sys.exit("InputError: Path to SOFA is invalid.")
 
 ### SOURCES:
 # https://unidata.github.io/netcdf4-python/
@@ -78,7 +78,12 @@ file_path = '/Users/dereknadeau/3DA_Nadeau_SOFA/D1_48K_24bit_0.3s_FIR_SOFA.sofa'
 # E = num emitters (should always be one speaker)
 
 class Measurement: 
-    def __init__(self, IR, position, N):
+    def __init__(
+        self, 
+        IR, 
+        position, 
+        N: int
+    ):
         self.N = N
         self.L = IR[0]
         self.R = IR[1]
@@ -105,7 +110,11 @@ class SOFA:
                 self.N)
             for i in range(self.M)]
         
-    def get_IR(self, target_azi, target_ele): 
+    def get_IR(
+        self, 
+        target_azi: float, 
+        target_ele: float
+    ): 
 
         # find the closest angle measurement taken available in the file!
         ### could definitely be optimized with more eloquent python
@@ -133,8 +142,8 @@ class SOFA:
         target_z = math.cos(target_ele)
 
         for i in range(self.M): 
-            curr_azi    = np.deg2rad(self.measurements[i].azimuth)
-            curr_ele    = np.deg2rad(self.measurements[i].elevation)
+            curr_azi = np.deg2rad(self.measurements[i].azimuth)
+            curr_ele = np.deg2rad(self.measurements[i].elevation)
             
             curr_x = math.sin(curr_ele) * math.cos(curr_azi)
             curr_y = math.sin(curr_ele) * math.sin(curr_azi)
@@ -171,15 +180,7 @@ class SOFA:
         )
         return self.measurements[min_distance_index]
 
-
-
-
-
-
-        
-
 mySofa = SOFA(file_path)
-
 mySofa.get_IR(args.azimuth, args.elevation)
 
 
