@@ -1,63 +1,12 @@
 import librosa 
 import numpy as np
 import math
-import netcdf4 as ncdf
+import netCDF4 as ncdf
 import argparse
 import sys
 import re
-
-parser = argparse.ArgumentParser(
-    prog="Script to load, read, and utilize SOFA files",
-    description="",
-)
-parser.add_argument('-f',   '--sofapath'    )
-parser.add_argument('-i',   '--inputpath'   )
-parser.add_argument('-o',   '--outputpath'  )
-parser.add_argument('-ele', '--elevation'   )
-parser.add_argument('-azi', '--azimuth'     )
-parser.add_argument('-xtc', '--crosstalkx'  )
-args = parser.parse_args()
-
-# print(args)
-
-if (not args.outputpath): 
-    # TODO generate output file name and put it in same folder as input file
-    print("No output path provided. File will be created at: ")
-
-if (not args.crosstalkx):
-    args.crosstalkx = False
-
-try:
-    if (not args.sofapath): raise ValueError
-except:
-    sys.exit("InputError: No SOFA file provided.")
-
-try:
-    if (not args.elevation): raise ValueError
-except:
-    sys.exit("InputError: No elevation provided.")
-
-try:
-    if (not args.azimuth): raise ValueError
-except:
-    sys.exit("InputError: No azimuth provided.")
-
-try:
-    args.elevation = float(args.elevation)
-    assert isinstance(args.elevation, float)
-except:
-    sys.exit("InputError: 'elevation' is not a valid float.")
-
-try:
-    args.azimuth = float(args.azimuth)
-    assert isinstance(args.azimuth, float)
-except:
-    sys.exit("InputError: 'azimuth' is not a valid float.")
-
-# try: 
-#     if (not re.match('^(.+[\\/])?[^\\/]+\.sofa$', args.sofapath)): raise ValueError
-# except:
-#     sys.exit("InputError: Path to SOFA is invalid.")
+from pathlib import Path
+from datetime import datetime
 
 ### SOURCES:
 # https://unidata.github.io/netcdf4-python/
@@ -67,15 +16,101 @@ except:
 ## TODO: command line 
 ## TODO: integrate with librosa 
 
-file_path = '/Users/dereknadeau/3DA_Nadeau_SOFA/D1_48K_24bit_0.3s_FIR_SOFA.sofa'    # smol
-# file_path = '/Users/dereknadeau/3DA_Nadeau_SOFA/D1_48K_24bit_256tap_FIR_SOFA.sofa'  # bigg
+def parser_setup():
+    parser = argparse.ArgumentParser(
+        prog="Script to load, read, and utilize SOFA files",
+        description="",
+    )
+    parser.add_argument('-f',   '--sofapath',    help="(string)  The path to your SOFA file.")
+    parser.add_argument('-i',   '--inputpath',   help="(string)  The path to your mono audio file.")
+    parser.add_argument('-o',   '--outputpath',  help="(string)  The desired path of the output file. Defaults to the directory your source audio came from.")
+    parser.add_argument('-ele', '--elevation',   help="(float)   In degrees, the desired perceived height of your audio.")
+    parser.add_argument('-azi', '--azimuth',     help="(float)   In degrees, the desired perceived lateral position of your audio.")
+    parser.add_argument('-xtc', '--crosstalkx',  help="(boolean) Set to true to apply crosstalk cancellation for binaural reporoduction over loudspeakers. Defaults to false.")
+    return parser.parse_args()
 
-# M = number of measurements taken (combinations of azimuth and elevation)
-# C = coordinate system in 3D
-# I = singleton dimension, defines scalar value (one sampling rate, one listener position in C coords)
-# N = num samples per measurement 
-# R = num receivers (should always be two ears)
-# E = num emitters (should always be one speaker)
+def handle_user_input(args):
+
+    sofaPath    = ''
+    inputPath   = ''
+    outputPath  = ''
+
+    if args.crosstalkx in ["true", "True", "t", "1"]:
+        args.crosstalkx = True
+    elif args.crosstalkx in ["false", "False", "f", "0"]:
+        args.crosstalkx = False
+    else:
+        print("Crosstalk cancellation input invalid. Defaulting to false.")
+        args.crosstalkx = False
+
+
+    try:
+        if (not args.sofapath): raise ValueError
+    except:
+        parser.print_help()
+        sys.exit("InputError: No SOFA file provided.")
+
+    try: 
+        sofaPath = Path(args.sofapath)
+        if (not sofaPath.exists()): raise ValueError
+    except:
+        parser.print_help()
+        sys.exit("InputError: Path to SOFA is invalid.")
+
+    try:
+        if (not args.inputpath): raise ValueError
+    except:
+        parser.print_help()
+        sys.exit("InputError: No input file provided.")
+
+    try: 
+        inputPath = Path(args.inputpath)
+        if (not inputPath.exists()): raise ValueError
+    except:
+        parser.print_help()
+        sys.exit("InputError: Path to SOFA is invalid.")
+
+    if (not args.outputpath): 
+        outputPath = Path(
+            str(inputPath.parent) + 
+            '/' +
+            str(inputPath.stem) + 
+            '_binaural_' + 
+            str(datetime.now()).replace('.','').replace(' ', '_').replace(':','-') + 
+            '.wav'
+        )
+        print("No output path provided. File will be created at:", outputPath)
+        # outputPath.touch()
+    else:
+        outputPath = Path(args.outputpath)
+
+
+
+    try:
+        if (not args.elevation): raise ValueError
+    except:
+        parser.print_help()
+        sys.exit("InputError: No elevation provided.")
+
+    try:
+        if (not args.azimuth): raise ValueError
+    except:
+        parser.print_help()
+        sys.exit("InputError: No azimuth provided.")
+
+    try:
+        args.elevation = float(args.elevation)
+        assert isinstance(args.elevation, float)
+    except:
+        parser.print_help()
+        sys.exit("InputError: 'elevation' is not a valid float.")
+
+    try:
+        args.azimuth = float(args.azimuth)
+        assert isinstance(args.azimuth, float)
+    except:
+        parser.print_help()
+        sys.exit("InputError: 'azimuth' is not a valid float.")
 
 class Measurement: 
     def __init__(
@@ -91,7 +126,15 @@ class Measurement:
         self.elevation  = position[1]
         self.distance   = position[2]
 
-class SOFA: 
+class SOFA:
+
+    # M = number of measurements taken (combinations of azimuth and elevation)
+    # C = coordinate system in 3D
+    # I = singleton dimension, defines scalar value (one sampling rate, one listener position in C coords)
+    # N = num samples per measurement 
+    # R = num receivers (should always be two ears)
+    # E = num emitters (should always be one speaker)
+
     def __init__(self, file_path):
         self.sofa = ncdf.Dataset(file_path, 'r', format='NETCDF4')   # load file
         assert len(self.sofa.variables['ReceiverPosition'][:]) == 2       # you need two ears!
@@ -180,7 +223,9 @@ class SOFA:
         )
         return self.measurements[min_distance_index]
 
-mySofa = SOFA(file_path)
+args = parser_setup()
+args = handle_user_input(args)
+mySofa = SOFA(args.sofapath)
 mySofa.get_IR(args.azimuth, args.elevation)
 
 
