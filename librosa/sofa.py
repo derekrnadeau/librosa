@@ -12,8 +12,9 @@ from datetime import datetime
 # https://www.mathworks.com/help/simulink/ref_extras/sphericaltocartesian.html
 # https://docs.python.org/3/library/argparse.html
 
-## TODO: command line 
+## TODO: enforce matching sample rates 
 ## TODO: integrate with librosa 
+## TODO: write stereo wav file
 
 def parser_setup():
     parser = argparse.ArgumentParser(
@@ -31,10 +32,7 @@ def parser_setup():
 def handle_user_input(parser):
 
     args = parser.parse_args()
-    sofaPath    = ''
-    inputPath   = ''
-    outputPath  = ''
-
+    
     if args.crosstalkx in ["true", "True", "t", "1"]:
         args.crosstalkx = True
     elif args.crosstalkx in ["false", "False", "f", "0"]:
@@ -51,8 +49,8 @@ def handle_user_input(parser):
         sys.exit("InputError: No SOFA file provided.")
 
     try: 
-        sofaPath = Path(args.sofapath)
-        if (not sofaPath.exists()): raise ValueError
+        args.sofapath = Path(args.sofapath)
+        if (not args.sofapath.exists()): raise ValueError
     except:
         parser.print_help()
         sys.exit("InputError: Path to SOFA is invalid.")
@@ -64,27 +62,22 @@ def handle_user_input(parser):
         sys.exit("InputError: No input file provided.")
 
     try: 
-        inputPath = Path(args.inputpath)
-        if (not inputPath.exists()): raise ValueError
+        args.inputpath = Path(args.inputpath)
+        if (not args.inputpath.exists()): raise ValueError
     except:
         parser.print_help()
         sys.exit("InputError: Path to SOFA is invalid.")
 
     if (not args.outputpath): 
-        outputPath = Path(
-            str(inputPath.parent) + 
+        args.outputpath = Path(
+            str(args.inputpath.parent) + 
             '/' +
-            str(inputPath.stem) + 
+            str(args.inputpath.stem) + 
             '_binaural_' + 
             str(datetime.now()).replace('.','').replace(' ', '_').replace(':','-') + 
             '.wav'
         )
-        print("No output path provided. File will be created at:", outputPath)
-        # outputPath.touch()
-    else:
-        outputPath = Path(args.outputpath)
-
-
+        print("No output path provided. File will be created at:", args.outputpath)
 
     try:
         if (not args.elevation): raise ValueError
@@ -142,7 +135,7 @@ class SOFA:
         assert len(self.sofa.variables['ReceiverPosition'][:]) == 2       # you need two ears!
         assert len(self.sofa.variables['EmitterPosition'][:])  == 1       # you need one speaker!
 
-        self.sr = self.sofa.variables['Data.SamplingRate'][0]             # get sampling rate
+        self.SR = self.sofa.variables['Data.SamplingRate'][0]             # get sampling rate
         self.I = 1
         self.C = 3
         self.M = self.sofa.dimensions['M'].size
@@ -268,4 +261,16 @@ class SOFA:
 parser = parser_setup()
 args = handle_user_input(parser)
 mySofa = SOFA(args.sofapath)
-mySofa.get_IR(args.azimuth, args.elevation)
+IR = mySofa.get_IR(args.azimuth, args.elevation)
+
+
+y1, sr1 = librosa.load(args.inputpath.absolute(), sr=mySofa.SR)  ### works up to here
+# yL, sr2 = librosa.load(IR.L, sr=mySofa.SR)  
+# yR, sr2 = librosa.load(IR.R, sr=mySofa.SR)  
+
+# if sr1 != sr2:
+#     print("Warning: Sample rates differ. Resampling signal 2 to match signal 1.")
+#     y1 = librosa.resample(y=y1, orig_sr=sr1, target_sr=sr2)
+
+# convolved_signal_fft = librosa.fftconvolve(y1, yL, mode='full')
+
