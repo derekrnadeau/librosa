@@ -6,8 +6,12 @@ import argparse
 import sys
 from pathlib import Path
 from datetime import datetime
+from pyfiglet import figlet_format
+
+print(figlet_format('Take a seat on the SOFA!', font='standard'))
 
 ### SOURCES:
+# https://sofaconventions.org/data/amt-1.0.0/sofa/doc/SOFA%20specs%200.6.pdf
 # https://unidata.github.io/netcdf4-python/
 # https://www.mathworks.com/help/simulink/ref_extras/sphericaltocartesian.html
 # https://docs.python.org/3/library/argparse.html
@@ -257,6 +261,9 @@ class SOFA:
     #     RoomDescription:          Acoustically Treated Listening Environment
     #     NCProperties:             version=1|netcdflibversion=4.6.1|hdf5libversion=1.8.12
     #     groups: 
+
+# def cancel_crosstalk(signal):
+
 
 parser = parser_setup()
 args = handle_user_input(parser)
