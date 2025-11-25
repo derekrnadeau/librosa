@@ -32,15 +32,6 @@ def parser_setup():
 def handle_user_input(parser):
 
     args = parser.parse_args()
-    
-    if args.crosstalkx in ["true", "True", "t", "1"]:
-        args.crosstalkx = True
-    elif args.crosstalkx in ["false", "False", "f", "0"]:
-        args.crosstalkx = False
-    else:
-        print("Crosstalk cancellation input invalid. Defaulting to false.")
-        args.crosstalkx = False
-
 
     try:
         if (not args.sofapath): raise ValueError
@@ -104,6 +95,15 @@ def handle_user_input(parser):
     except:
         parser.print_help()
         sys.exit("InputError: 'azimuth' is not a valid float.")
+
+    if args.crosstalkx in ["true", "True", "t", "1"]:
+        args.crosstalkx = True
+    elif args.crosstalkx in ["false", "False", "f", "0"]:
+        args.crosstalkx = False
+    else:
+        print("Crosstalk cancellation input invalid. Defaulting to false.")
+        args.crosstalkx = False
+
 
     return args
 
