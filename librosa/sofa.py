@@ -4,6 +4,7 @@ import math
 import netCDF4 as ncdf
 import argparse
 import sys
+import soundfile as sf
 from pathlib import Path
 from datetime import datetime
 from pyfiglet import figlet_format
@@ -119,8 +120,8 @@ class Measurement:
         N: int
     ):
         self.N = N
-        self.L = IR[0]
-        self.R = IR[1]
+        self.L = IR[0][0]
+        self.R = IR[1][0]
         self.azimuth    = position[0]
         self.elevation  = position[1]
         self.distance   = position[2]
@@ -271,7 +272,10 @@ mySofa = SOFA(args.sofapath)
 IR = mySofa.get_IR(args.azimuth, args.elevation)
 
 
-y1, sr1 = librosa.load(args.inputpath.absolute(), sr=mySofa.SR)  ### works up to here
+y1, sr1 = sf.read(args.inputpath.absolute(), sr=mySofa.SR)  ### works up to here
+print(y1, sr1)
+print ("IR L:", IR.L)
+print ("IR R:", IR.R)
 # yL, sr2 = librosa.load(IR.L, sr=mySofa.SR)  
 # yR, sr2 = librosa.load(IR.R, sr=mySofa.SR)  
 
@@ -279,5 +283,13 @@ y1, sr1 = librosa.load(args.inputpath.absolute(), sr=mySofa.SR)  ### works up to
 #     print("Warning: Sample rates differ. Resampling signal 2 to match signal 1.")
 #     y1 = librosa.resample(y=y1, orig_sr=sr1, target_sr=sr2)
 
-# convolved_signal_fft = librosa.fftconvolve(y1, yL, mode='full')
+yL = np.convolve(y1, IR.L, mode='full')
+yR = np.convolve(y1, IR.R, mode='full')
+
+sf.write(
+    args.outputpath.resolve(),
+    [yL, yR], 
+    sr1, 
+    subtype='PCM_24'
+)
 
