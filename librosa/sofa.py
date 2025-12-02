@@ -226,44 +226,44 @@ class SOFA:
         return self.measurements[min_distance_index]
     
     # <class 'netCDF4.Dataset'>
-    # root group (NETCDF4 data model, file format HDF5):
-    #     dimensions(sizes):        I(1), C(3), R(2), E(1), N(14400), M(50), S(0)
-    #     variables(dimensions):    float64 ListenerPosition(I, C), 
-    #                               float64 ReceiverPosition(R, C, I), 
-    #                               float64 SourcePosition(M, C), 
-    #                               float64 EmitterPosition(E, C, I), 
-    #                               float64 ListenerUp(I, C), 
-    #                               float64 ListenerView(I, C), 
-    #                               float64 EmitterUp(E, C, I), 
-    #                               float64 EmitterView(E, C, I), 
-    #                               float64 Data.IR(M, R, E, N), //// 50 measurements, 2 receivers/ears, 1 emitter, n samples 
-    #                               float64 Data.SamplingRate(I), 
-    #                               float64 Data.Delay(I, R, E)
-    #     Conventions:              SOFA
-    #     Version:                  1.0
-    #     SOFAConventions:          MultiSpeakerBRIR
-    #     SOFAConventionsVersion:   0.3
-    #     APIName:                  ARI SOFA API for Matlab/Octave
-    #     APIVersion:               1.1.1
-    #     ApplicationName:          MATLAB
-    #     ApplicationVersion:       R2018a
-    #     AuthorContact:            gavin.kearney@york.ac.uk
-    #     Comment:                  50 source positions. KU100 subject. Measurement utlized Genelec 8030/8040 Loudspeakers and 3s swept sine technique. Reciever microphones were KU100 built in mics via MOTU UltraLite-mk3 Hybrid Preamps. Filters were free field equalized for the microphones responces. (approx.) Linear phase BRIRs.
-    #     DataType:                 FIRE
-    #     History:                  Measurement, Microphone Free Field Equalization, Trim
-    #     License:                  Copyright 2018, University of York, Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-    #     Organization:             AudioLab, Department of Electronic Engineering, University of York, United Kingdom.
-    #     References:               https://doi.org/10.3390/app8112029
-    #     RoomType:                 reverberant
-    #     Origin:                   Exponential Swept Sine Wave Measuremnt
-    #     DateCreated:              2019-08-01 13:21:06
-    #     DateModified:             2020-05-13 21:33:31
-    #     Title:                    D1 BRIRs
-    #     DatabaseName:             SADIE II
-    #     ListenerShortName:        D1
-    #     RoomDescription:          Acoustically Treated Listening Environment
-    #     NCProperties:             version=1|netcdflibversion=4.6.1|hdf5libversion=1.8.12
-    #     groups: 
+        # root group (NETCDF4 data model, file format HDF5):
+        #     dimensions(sizes):        I(1), C(3), R(2), E(1), N(14400), M(50), S(0)
+        #     variables(dimensions):    float64 ListenerPosition(I, C), 
+        #                               float64 ReceiverPosition(R, C, I), 
+        #                               float64 SourcePosition(M, C), 
+        #                               float64 EmitterPosition(E, C, I), 
+        #                               float64 ListenerUp(I, C), 
+        #                               float64 ListenerView(I, C), 
+        #                               float64 EmitterUp(E, C, I), 
+        #                               float64 EmitterView(E, C, I), 
+        #                               float64 Data.IR(M, R, E, N), //// 50 measurements, 2 receivers/ears, 1 emitter, n samples 
+        #                               float64 Data.SamplingRate(I), 
+        #                               float64 Data.Delay(I, R, E)
+        #     Conventions:              SOFA
+        #     Version:                  1.0
+        #     SOFAConventions:          MultiSpeakerBRIR
+        #     SOFAConventionsVersion:   0.3
+        #     APIName:                  ARI SOFA API for Matlab/Octave
+        #     APIVersion:               1.1.1
+        #     ApplicationName:          MATLAB
+        #     ApplicationVersion:       R2018a
+        #     AuthorContact:            gavin.kearney@york.ac.uk
+        #     Comment:                  50 source positions. KU100 subject. Measurement utlized Genelec 8030/8040 Loudspeakers and 3s swept sine technique. Reciever microphones were KU100 built in mics via MOTU UltraLite-mk3 Hybrid Preamps. Filters were free field equalized for the microphones responces. (approx.) Linear phase BRIRs.
+        #     DataType:                 FIRE
+        #     History:                  Measurement, Microphone Free Field Equalization, Trim
+        #     License:                  Copyright 2018, University of York, Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+        #     Organization:             AudioLab, Department of Electronic Engineering, University of York, United Kingdom.
+        #     References:               https://doi.org/10.3390/app8112029
+        #     RoomType:                 reverberant
+        #     Origin:                   Exponential Swept Sine Wave Measuremnt
+        #     DateCreated:              2019-08-01 13:21:06
+        #     DateModified:             2020-05-13 21:33:31
+        #     Title:                    D1 BRIRs
+        #     DatabaseName:             SADIE II
+        #     ListenerShortName:        D1
+        #     RoomDescription:          Acoustically Treated Listening Environment
+        #     NCProperties:             version=1|netcdflibversion=4.6.1|hdf5libversion=1.8.12
+        #     groups: 
 
 # def cancel_crosstalk(signal):
 
