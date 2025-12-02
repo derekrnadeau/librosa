@@ -7,9 +7,9 @@ import sys
 import soundfile as sf
 from pathlib import Path
 from datetime import datetime
-from pyfiglet import figlet_format
 
-print(figlet_format('Take a seat on the SOFA!', font='standard'))
+# from pyfiglet import figlet_format
+# print(figlet_format('Take a seat on the SOFA!', font='standard'))
 
 ### SOURCES:
 # https://sofaconventions.org/data/amt-1.0.0/sofa/doc/SOFA%20specs%200.6.pdf
@@ -158,6 +158,8 @@ class SOFA:
         target_azi: float, 
         target_ele: float
     ): 
+        
+        print(target_azi, target_ele)
 
         # find the closest angle measurement taken available in the file!
         ### could definitely be optimized with more eloquent python
@@ -272,7 +274,7 @@ mySofa = SOFA(args.sofapath)
 IR = mySofa.get_IR(args.azimuth, args.elevation)
 
 
-y1, sr1 = sf.read(args.inputpath.absolute(), sr=mySofa.SR)  ### works up to here
+y1, sr1 = librosa.load(args.inputpath.absolute())# ,mySofa.SR)  ### works up to here
 print(y1, sr1)
 print ("IR L:", IR.L)
 print ("IR R:", IR.R)
