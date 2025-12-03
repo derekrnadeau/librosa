@@ -8,9 +8,6 @@ import soundfile as sf
 from pathlib import Path
 from datetime import datetime
 
-# from pyfiglet import figlet_format
-# print(figlet_format('Take a seat on the SOFA!', font='standard'))
-
 ### SOURCES:
 # https://sofaconventions.org/data/amt-1.0.0/sofa/doc/SOFA%20specs%200.6.pdf
 # https://unidata.github.io/netcdf4-python/
@@ -64,16 +61,17 @@ def handle_user_input(parser):
         parser.print_help()
         sys.exit("InputError: Path to SOFA is invalid.")
 
-    if (not args.outputpath): 
-        args.outputpath = Path(
-            str(args.inputpath.parent) + 
-            '/' +
-            str(args.inputpath.stem) + 
-            '_binaural_' + 
-            str(datetime.now()).replace('.','').replace(' ', '_').replace(':','-') + 
-            '.wav'
-        )
+    new_filename = (str(args.inputpath.stem) + 
+        '_binaural_' + 
+        str(datetime.now()).replace('.','').replace(' ', '_').replace(':','-') + 
+        '.wav'
+    )
+
+    if (args.outputpath == None): 
+        args.outputpath = Path(str(args.inputpath.parent) + '/' + new_filename)
         print("No output path provided. File will be created at:", args.outputpath)
+    else:
+        args.outputpath = Path(args.outputpath + '/' + new_filename)
 
     try:
         if (not args.elevation): raise ValueError
@@ -158,8 +156,6 @@ class SOFA:
         target_azi: float, 
         target_ele: float
     ): 
-        
-        print(target_azi, target_ele)
 
         # find the closest angle measurement taken available in the file!
         ### could definitely be optimized with more eloquent python
@@ -273,25 +269,22 @@ args = handle_user_input(parser)
 mySofa = SOFA(args.sofapath)
 IR = mySofa.get_IR(args.azimuth, args.elevation)
 
-
-y1, sr1 = librosa.load(args.inputpath.absolute())# ,mySofa.SR)  ### works up to here
-print(y1, sr1)
-print ("IR L:", IR.L)
-print ("IR R:", IR.R)
-# yL, sr2 = librosa.load(IR.L, sr=mySofa.SR)  
-# yR, sr2 = librosa.load(IR.R, sr=mySofa.SR)  
-
-# if sr1 != sr2:
-#     print("Warning: Sample rates differ. Resampling signal 2 to match signal 1.")
-#     y1 = librosa.resample(y=y1, orig_sr=sr1, target_sr=sr2)
+y1, sr1 = librosa.load(args.inputpath.absolute()) 
 
 yL = np.convolve(y1, IR.L, mode='full')
 yR = np.convolve(y1, IR.R, mode='full')
 
+max_amplitude = max(np.max(np.abs(yL)), np.max(np.abs(yR)))
+yL = yL / max_amplitude
+yR = yR / max_amplitude
+
+stereo_data = np.column_stack((yL, yR))
+
 sf.write(
-    args.outputpath.resolve(),
-    [yL, yR], 
-    sr1, 
-    subtype='PCM_24'
+    args.outputpath.absolute(),
+    stereo_data, # Pass the combined 2D array
+    mySofa.SR, 
+    subtype='PCM_24',
+    format='WAV'
 )
 
