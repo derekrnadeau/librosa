@@ -118,8 +118,8 @@ class Measurement:
         N: int
     ):
         self.N = N
-        self.L = IR[0][0]
-        self.R = IR[1][0]
+        self.L = IR[1]
+        self.R = IR[0]
         self.azimuth    = position[0]
         self.elevation  = position[1]
         self.distance   = position[2]
@@ -177,7 +177,7 @@ class SOFA:
                 self.sofa.variables['Data.IR'][i], 
                 self.sofa.variables['SourcePosition'][i], 
                 self.N)
-            for i in range(self.M)]       
+            for i in range(self.M)]    
 
     def get_IR(
         self, 
@@ -244,17 +244,15 @@ class SOFA:
         )
         return self.measurements[min_distance_index]
     
-    
 # def cancel_crosstalk(signal):
-
 
 parser = parser_setup()
 args = handle_user_input(parser)
 mySofa = SOFA(args.sofapath)
+
+y1, sr1 = librosa.load(args.inputpath.absolute(), sr=mySofa.SR) 
+
 IR = mySofa.get_IR(args.azimuth, args.elevation)
-
-y1, sr1 = librosa.load(args.inputpath.absolute()) 
-
 yL = np.convolve(y1, IR.L, mode='full')
 yR = np.convolve(y1, IR.R, mode='full')
 
