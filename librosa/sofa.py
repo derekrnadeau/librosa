@@ -59,7 +59,7 @@ def handle_user_input(parser):
         if (not args.inputpath.exists()): raise ValueError
     except:
         parser.print_help()
-        sys.exit("InputError: Path to SOFA is invalid.")
+        sys.exit("InputError: Path to input file is invalid.")
 
     new_filename = (str(args.inputpath.stem) + 
         '_binaural_' + 
@@ -151,77 +151,7 @@ class SOFA:
                 self.N)
             for i in range(self.M)]
         
-    def get_IR(
-        self, 
-        target_azi: float, 
-        target_ele: float
-    ): 
-
-        # find the closest angle measurement taken available in the file!
-        ### could definitely be optimized with more eloquent python
-        ### I wasn't familiar with the math, so I left it more explicit 
-
-        # in a loop of all IR measurements
-        # measure distance between IR azi/ele and target azi/ele 
-            # convert from spherical to cartesian coordinates
-        # keep track of the measurement index with the smallest distance
-
-        min_distance        = math.inf
-        min_distance_index  = -1
-
-        target_azi  = np.deg2rad(target_azi)
-        target_ele  = np.deg2rad(target_ele)
-
-        # we assume distance is constant, and therefore a consistent unit sphere radius of 1 
-        # theta is traditionally azimuth, phi is traditionally elevation 
-
-        # x = r × sin(phi) × cos(theta)
-        # y = r × sin(phi) × sin(theta)
-        # z = r × cos(phi)
-        target_x = math.sin(target_ele) * math.cos(target_azi)
-        target_y = math.sin(target_ele) * math.sin(target_azi)
-        target_z = math.cos(target_ele)
-
-        for i in range(self.M): 
-            curr_azi = np.deg2rad(self.measurements[i].azimuth)
-            curr_ele = np.deg2rad(self.measurements[i].elevation)
-            
-            curr_x = math.sin(curr_ele) * math.cos(curr_azi)
-            curr_y = math.sin(curr_ele) * math.sin(curr_azi)
-            curr_z = math.cos(curr_ele)
-
-            # distances between two points in cartesian 3D 
-            curr_distance = math.sqrt(
-                math.pow(target_x - curr_x, 2) +
-                math.pow(target_y - curr_y, 2) + 
-                math.pow(target_z - curr_z, 2)
-            )
-
-            # update best fit if applicable
-            if curr_distance < min_distance:
-                min_distance = curr_distance
-                min_distance_index = i
-            
-            # if ever a perfect match, return immediately
-            if curr_distance == 0:
-                print(
-                    "Exact match! Using IR with azi & ele: ", 
-                    self.measurements[min_distance_index].azimuth, 
-                    ' - ',
-                    self.measurements[min_distance_index].elevation
-                )
-                return self.measurements[min_distance_index]
-
-        print(
-            "No exact match. Using IR with azi & ele: ", 
-            self.measurements[min_distance_index].azimuth, 
-            ' - ',
-            self.measurements[min_distance_index].elevation, 
-            " with distance: ", min_distance
-        )
-        return self.measurements[min_distance_index]
-    
-    # <class 'netCDF4.Dataset'>
+        # <class 'netCDF4.Dataset'>
         # root group (NETCDF4 data model, file format HDF5):
         #     dimensions(sizes):        I(1), C(3), R(2), E(1), N(14400), M(50), S(0)
         #     variables(dimensions):    float64 ListenerPosition(I, C), 
@@ -261,6 +191,69 @@ class SOFA:
         #     NCProperties:             version=1|netcdflibversion=4.6.1|hdf5libversion=1.8.12
         #     groups: 
 
+    def get_IR(
+        self, 
+        target_azi: float, 
+        target_ele: float
+    ): 
+
+        # find the closest angle measurement taken available in the file!
+        # for all IR measurements measure distance between IR azi/ele and target azi/ele 
+            # convert from spherical to cartesian coordinates
+        # keep track of the measurement index with the smallest distance
+
+        min_distance        = math.inf
+        min_distance_index  = -1
+
+        target_theta = np.deg2rad(target_azi)
+        target_alpha = np.deg2rad(target_ele)
+
+        # we assume distance is constant, and therefore a consistent unit sphere radius of 1 
+        # theta is traditionally azimuth, phi is traditionally elevation 
+        # alpha is angle from horizonatl plane, phi is angle from straight up
+
+        # x = r × cos(alp) × cos(theta)
+        # y = r × cos(alp) × sin(theta)
+        # z = r × sin(alp)
+        target_x = math.cos(target_alpha) * math.cos(target_theta)
+        target_y = math.cos(target_alpha) * math.sin(target_theta)
+        target_z = math.sin(target_alpha)
+        
+        # fancy vectorized array multiplication
+        azi_array = np.array([m.azimuth   for m in self.measurements])
+        ele_array = np.array([m.elevation for m in self.measurements])
+
+        curr_theta = np.deg2rad(azi_array)
+        curr_alpha = np.deg2rad(ele_array)
+
+        curr_x = np.cos(curr_alpha) * np.cos(curr_theta)
+        curr_y = np.cos(curr_alpha) * np.sin(curr_theta)
+        curr_z = np.sin(curr_alpha)
+
+        # distance between cartesian coords
+        squared_distances = np.sqrt(
+            ( target_x - curr_x ) ** 2 + 
+            ( target_y - curr_y ) ** 2 + 
+            ( target_z - curr_z ) ** 2 
+        )
+
+        min_distance_index = np.argmin(squared_distances)
+        min_distance = squared_distances[min_distance_index]
+
+        if min_distance == 0:
+            message = "Exact match! Using IR with azi & ele:"
+        else:
+            message = "No exact match. Using IR with azi & ele:", 
+            
+        print(
+                message,
+                self.measurements[min_distance_index].azimuth, '-',
+                self.measurements[min_distance_index].elevation, 
+                "with distance:", min_distance
+            )
+        return self.measurements[min_distance_index]
+    
+    
 # def cancel_crosstalk(signal):
 
 
