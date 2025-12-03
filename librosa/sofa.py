@@ -223,9 +223,11 @@ class SOFA:
         azi_array = np.array([m.azimuth   for m in self.measurements])
         ele_array = np.array([m.elevation for m in self.measurements])
 
+        # convert to radians 
         curr_theta = np.deg2rad(azi_array)
         curr_alpha = np.deg2rad(ele_array)
 
+        # spherical coords to cartesian 
         curr_x = np.cos(curr_alpha) * np.cos(curr_theta)
         curr_y = np.cos(curr_alpha) * np.sin(curr_theta)
         curr_z = np.sin(curr_alpha)
@@ -237,6 +239,7 @@ class SOFA:
             ( target_z - curr_z ) ** 2 
         )
 
+        # find closest match
         min_distance_index = np.argmin(squared_distances)
         min_distance = squared_distances[min_distance_index]
 
@@ -246,11 +249,11 @@ class SOFA:
             message = "No exact match. Using IR with azi & ele:", 
             
         print(
-                message,
-                self.measurements[min_distance_index].azimuth, '-',
-                self.measurements[min_distance_index].elevation, 
-                "with distance:", min_distance
-            )
+            message,
+            self.measurements[min_distance_index].azimuth, '-',
+            self.measurements[min_distance_index].elevation, 
+            "with distance:", min_distance
+        )
         return self.measurements[min_distance_index]
     
     
