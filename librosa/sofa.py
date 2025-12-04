@@ -28,7 +28,6 @@ def parser_setup():
     parser.add_argument('-o',   '--outputpath',  help="(string)  The desired path of the output file. Defaults to the directory your source audio came from.")
     parser.add_argument('-ele', '--elevation',   help="(float)   In degrees, the desired perceived height of your audio.")
     parser.add_argument('-azi', '--azimuth',     help="(float)   In degrees, the desired perceived lateral position of your audio.")
-    parser.add_argument('-xtc', '--crosstalkx',  help="(boolean) Set to true to apply crosstalk cancellation for binaural reporoduction over loudspeakers. Defaults to false.")
     return parser
 
 def handle_user_input(parser):
@@ -98,15 +97,6 @@ def handle_user_input(parser):
     except:
         parser.print_help()
         sys.exit("InputError: 'azimuth' is not a valid float.")
-
-    if args.crosstalkx in ["true", "True", "t", "1"]:
-        args.crosstalkx = True
-    elif args.crosstalkx in ["false", "False", "f", "0"]:
-        args.crosstalkx = False
-    else:
-        print("Crosstalk cancellation input invalid. Defaulting to false.")
-        args.crosstalkx = False
-
 
     return args
 
@@ -243,8 +233,6 @@ class SOFA:
             "with distance:", round(min_distance, 3)
         )
         return self.measurements[min_distance_index]
-    
-# def cancel_crosstalk(signal):
 
 parser = parser_setup()
 args = handle_user_input(parser)
