@@ -238,8 +238,10 @@ parser = parser_setup()
 args = handle_user_input(parser)
 mySofa = SOFA(args.sofapath)
 
-y1, sr1 = librosa.load(args.inputpath.absolute(), sr=mySofa.SR) 
-
+y1, sr1 = librosa.load(args.inputpath.absolute(), sr=None) 
+if mySofa.SR != sr1:
+    raise ValueError(f"Sample rates do not match. Input: {sr1} mismatched to SOFA: {mySofa.SR}")
+    
 IR = mySofa.get_IR(args.azimuth, args.elevation)
 yL = np.convolve(y1, IR.L, mode='full')
 yR = np.convolve(y1, IR.R, mode='full')
@@ -257,7 +259,6 @@ sf.write(
     subtype='PCM_24',
     format='WAV'
 )
-
 
 print('---------------------------------')
 print()
