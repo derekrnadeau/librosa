@@ -1,0 +1,26 @@
+cd ~/Documents/GitHub/librosa 
+
+# ARGUMENTS
+python ./librosa/sofa.py 
+	-f SOFA_FILE.sofa 
+	-i INPUT_FILE.wav 
+	-o /PATH/TO/OUTPUT
+	-azi 45 
+	-ele 0 
+
+
+# KU100, VOX, AZI 45 ELE 0, EXACT MATCH
+python ./librosa/sofa.py -f ./sofa-test-files/D1_96K_24bit_512tap_FIR_SOFA.sofa -i ./sofa-test-files/_vox.wav -o ~/Desktop/binaural -azi 45 -ele 0 
+
+# KU100, VOX, AZI 51.5 ELE -16.3, NO EXACT MATCH, NO OUTPUT PATH GIVEN 
+python ./librosa/sofa.py -f ./sofa-test-files/D1_96K_24bit_512tap_FIR_SOFA.sofa -i ./sofa-test-files/_vox.wav -azi 51.1 -ele -16.3 
+
+# SR MISMATCH
+python ./librosa/sofa.py -f ./sofa-test-files/D1_48K_24bit_256tap_FIR_SOFA.sofa -i ./sofa-test-files/_vox.wav -o ~/Desktop/binaural -azi 45 -ele 0 
+
+# HUMAN 5, VOX, AZI -45 ELE 15
+python ./librosa/sofa.py -f ./sofa-test-files/H5_96K_24bit_512tap_FIR_SOFA.sofa -i ./sofa-test-files/_vox.wav -o ~/Desktop/binaural -azi -45 -ele 15 
+
+# WHATEVER THE PEOPLE WANT
+# ANY AZI & ELE
+# CHOOSE FROM VOX, BASS, GUITAR, DRUMS
